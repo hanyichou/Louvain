@@ -34,6 +34,7 @@ class EdgeTupleMin
     }
 };
 
+#if 0
 typedef struct Community
 {
     Int commId;    //community id
@@ -41,6 +42,7 @@ typedef struct Community
     Heap<Int,Min> vertices; //heap sorted vertex list
     Heap<Int,Min> flatVertices; //heap sorted flatten vertex list
 } Community;
+#endif
 
 class Graph
 {
