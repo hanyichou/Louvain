@@ -66,7 +66,7 @@ int main(int argc, char **argv)
 
     const Int n = (Int)atoi(argv[1]);
     const Int m0 = (Int)atoi(argv[2]);
-    const int n_threads = (int)n_threads;
+    const int n_threads = (int)atoi(argv[3]);
 
     td0 = omp_get_wtime();
 
