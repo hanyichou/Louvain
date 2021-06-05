@@ -5,6 +5,9 @@
 #include <random>
 #include <algorithm>
 #include "graph.h"
+#include "def.h"
+#include "heap.h"
+
 #if 0
 Int Graph::vertex_id(const Int& key) 
 {

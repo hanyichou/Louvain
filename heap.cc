@@ -1,7 +1,7 @@
 #include <cassert>
 #include <iostream>
 #include "heap.h"
-#include "graph.h"
+#include "def.h"
 
 template<typename T, typename Comp>
 bool Heap<T,Comp>::isLeaf(const Int& pos) const
@@ -33,7 +33,7 @@ void Heap<T,Comp>::push_back(const T& elem)
     Int curr = num_++;
     resize(num_);
     data_[curr] = elem;
-    while((curr != 0) && (Comp::less(data_[curr], data_[parent(curr)])))
+    while((curr != 0) && (Comp::prior(data_[curr], data_[parent(curr)])))
     {
         swap(data_, curr, parent(curr));
         curr = parent(curr);
@@ -63,7 +63,7 @@ T Heap<T,Comp>::pop(const Int& i)
     else
     {
         swap(data_, pos, --num_);
-        while((pos != 0) && (Comp::less(data_[pos], data_[parent(pos)])))
+        while((pos != 0) && (Comp::prior(data_[pos], data_[parent(pos)])))
         {
             swap(data_, pos, parent(pos));
             pos = parent(pos);
@@ -90,9 +90,9 @@ void Heap<T,Comp>::siftDown(const Int& i)
     {
         Int lc = leftChild(pos);
         Int rc = rightChild(pos);
-        if((rc < num_) && Comp::less(data_[rc], data_[lc]))
+        if((rc < num_) && Comp::prior(data_[rc], data_[lc]))
             lc = rc;
-        if((Comp::less(data_[pos], data_[lc])))
+        if((Comp::prior(data_[pos], data_[lc])))
             break;
         swap(data_, pos, lc);
         pos = lc;

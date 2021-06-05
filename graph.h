@@ -4,36 +4,6 @@
 #include "heap.h"
 #include "def.h"
 
-typedef struct Edge
-{
-    Int x;
-    Float w;
-} Edge;
-
-typedef struct EdgeTuple
-{
-    Int x,y;
-    Float w;
-} EdgeTuple;
-
-class EdgeTupleMin
-{
-  private:
-    EdgeTupleMin();
-  public:
-    static bool less(const EdgeTuple& a, const EdgeTuple& b)
-    {
-        if(a.x < b.x)
-            return true;
-        else if(a.x > b.x)
-            return false;
-        else if (a.y <= b.y)
-            return true;
-        else 
-            return false;
-    }
-};
-
 #if 0
 typedef struct Community
 {
