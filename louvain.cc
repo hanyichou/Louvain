@@ -14,7 +14,11 @@ Float Louvain::move_vertex()
     Float* ac = partition_-> get_community_order();
 
     Int max_order = graph->get_max_order();
-    Float* e_cj = new Float [max_order]();
+
+    Float* e_cj = new Float [max_order];
+    for(Int i = 0; i < max_order; ++i)
+        e_cj[i] = 0;
+
     Float m = partition_->get_mass();
  
     for(Int v = 0; v < num_vertices; ++v)
