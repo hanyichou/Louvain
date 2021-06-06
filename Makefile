@@ -1,5 +1,12 @@
 CC:=g++
-CFLAGS:= -std=c++11 -O3 -Wall -Wextra -Wfatal-errors -fopenmp -DUSE_32BIT 
+
+CFLAGS:= -std=c++11
+
+ifeq ($(debug), 1)
+	CFLAGS+= -g -Wall -Wextra -Wfatal-errors -fopenmp -DUSE_32BIT 
+else
+	CFLAGS+= -O3 -Wall -Wextra -Wfatal-errors -fopenmp -DUSE_32BIT
+endif
 
 EXE1:= test_heap
 EXE2:= test_graph
