@@ -5,7 +5,6 @@ Float Partition::compute_modularity()
 {
     Float mod = 0.;
     Int num = graph_->get_num_vertices();
-    Float* w = graph_->get_weighted_orders();
     
     uint32_t* comm_id_list = new uint32_t[(num+31)>>5];
     for(Int i = 0; i < (num+31)>>5; ++i)
@@ -15,6 +14,8 @@ Float Partition::compute_modularity()
     {
         Int* edges = graph_->get_adjacent_vertices(u);
         Int n = graph_->get_num_adjacent_vertices(u);
+        Float* w = graph_->get_adjacent_weights(u);
+
         Int my_comm_id = commMap_[u];
 
         for(Int j = 0; j < n; ++j) 

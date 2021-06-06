@@ -8,9 +8,8 @@ Float Louvain::move_vertex()
     Int num_vertices = graph->get_num_vertices();
     Float total_delta = 0.;
 
-    Float *weights = graph->get_weights();
     Float *weighted_orders = graph->get_weighted_orders();
-    Int   *orders = graph->get_orders();
+    //Int   *orders = graph->get_orders();
     Float* ac = partition_-> get_community_order();
 
     Int max_order = graph->get_max_order();
@@ -24,20 +23,20 @@ Float Louvain::move_vertex()
     for(Int v = 0; v < num_vertices; ++v)
     {
         Int   *edges   = graph->get_adjacent_vertices(v);
-        long num_edges = graph->get_num_adjacent_vertices(v);
-        long my_comm_id = partition_->get_comm_id(v);
+        Int num_edges = graph->get_num_adjacent_vertices(v);
+        Float *weights = graph->get_adjacent_weights(v);
+        Int my_comm_id = partition_->get_comm_id(v);
          
         //loop through all neighboring clusters
-        long unique_id = 0;
+        Int unique_id = 0;
         std::map<Int, Int> neighCommIdMap;
 
         Float e_ci = 0.;
         Float ki = weighted_orders[v];
-          
         for(Int j = 0; j < num_edges; ++j)
         {
            Int u = edges[j];
-           Float w_vu = weights[u];
+           Float w_vu = weights[j];
 
            Int comm_id = partition_->get_comm_id(u);
            if(comm_id != my_comm_id)
@@ -76,6 +75,7 @@ Float Louvain::move_vertex()
         if(destCommId != my_comm_id)
         {
             partition_->move_vertex(v, my_comm_id, destCommId, delta, ki);
+            //std::cout << delta << " " << partition_->compute_modularity() << std::endl;
             total_delta += delta;
         }
     } 
@@ -94,9 +94,9 @@ void Louvain::run()
         while(true)
         {
             delta = move_vertex();
-            std::cout << "LOOP\t\t\t\tdQ\n";
-            std::cout << "---------------------------------"; 
-            std::cout << count <<"\t\t\t\t" << delta << std::endl;
+            std::cout << "LOOP\t\tdQ\n";
+            std::cout << "-------------------------\n"; 
+            std::cout << count <<"\t\t" << delta << std::endl;
             count++;
             if(delta < tau_)
                 break;

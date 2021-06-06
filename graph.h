@@ -61,7 +61,7 @@ class Graph
         
     }
     Int*    get_adjacent_vertices(const Int&);
-    Float*  get_weights();
+    Float*  get_adjacent_weights(const Int&);
     Int*    get_orders();
     Float*  get_weighted_orders();
     Int     get_num_adjacent_vertices(const Int&);

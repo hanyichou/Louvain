@@ -56,16 +56,22 @@ Int* Graph::get_adjacent_vertices(const Int& i)
     return edges_+first; 
 }
 
+Float* Graph::get_adjacent_weights(const Int& i)
+{
+    Int first = indices_[i];
+    return weights_+first;
+}
+
 Int* Graph::get_orders()
 {
     return orders_;
 }
- 
+/* 
 Float* Graph::get_weights()
 {
     return weights_;
 }
-
+*/
 Float* Graph::get_weighted_orders()
 {
     return weighted_orders_;
@@ -213,8 +219,7 @@ void Graph::neigh_scan_weights()
         Int end = indices_[i+1];
         for(Int j = start; j < end; ++j)
         {
-            Int u = edges_[j];
-            Float w = weights_[u];
+            Float w = weights_[j];
             weighted_orders_[i] += w;
         }
     }
@@ -229,8 +234,7 @@ void Graph::neigh_scan_max_weight()
         Float max = 0.;
         for(Int j = start; j < end; ++j)
         {
-            Int u = edges_[j];
-            Float w = weights_[u];
+            Float w = weights_[j];
             if(max < w)
                 max = w;
         }
@@ -261,8 +265,7 @@ void Graph::neigh_scan_weights(const int& num_threads)
         Int end = indices_[i+1];
         for(Int j = start; j < end; ++j)
         {
-            Int u = edges_[j];
-            Float w = weights_[u];
+            Float w = weights_[j];
             weighted_orders_[i] += w;
         }
     }
@@ -279,8 +282,7 @@ void Graph::neigh_scan_max_weight(const int& num_threads)
         Float max = 0;
         for(Int j = start; j < end; ++j)
         {
-            Int u = edges_[j];
-            Float w = weights_[u];
+            Float w = weights_[j];
             if(max < w)
                 max = w;
         }
