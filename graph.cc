@@ -117,7 +117,7 @@ void Graph::create_random_network_ba(const Int& m0)
     EdgeTuple* edgeList = new EdgeTuple[2*totalVertices_*m0];
     std::default_random_engine rand_gen1, rand_gen2;
     std::normal_distribution<Float> gaussian(1.0,1.0);
-    indices_ = new Int [totalVertices_+1] ();
+    indices_ = new Int [totalVertices_+1];
 
     totalEdges_ = 0;
     for(int i = 0; i < m0; ++i)
@@ -145,6 +145,7 @@ void Graph::create_random_network_ba(const Int& m0)
     }
     for(Int i = 1; i <= totalVertices_; ++i)
         indices_[i] += indices_[i-1];
+    //std::cout << totalEdges_ << std::endl;
     sort_edges(edgeList, totalEdges_);
 }
 
@@ -177,7 +178,12 @@ weights_(nullptr)
     weighted_orders_ = new Float [totalVertices_];
     max_weights_ = new Float[totalVertices_];
     orders_ = new Int[totalVertices_];
-
+    for(Int i = 0; i < totalVertices_; ++i)
+    {
+        weighted_orders_[i] = 0.;
+        max_weights_[i] = 0.;
+        orders_[i] = 0;
+    }
     neigh_scan();
     neigh_scan_weights();
     neigh_scan_max_weight();
