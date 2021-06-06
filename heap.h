@@ -12,15 +12,18 @@ class Heap
 
     void heapify();
     void siftDown(const Int&);
-    void resize(const Int&);
+    void resize(const Int&, const Int&);
   
   public:
     Heap() : cap_(1), num_(0), data_(nullptr)
     {
-        data_ = new T [cap_] ();
+        data_ = new T [cap_];
     };
-    Heap(T* data, const Int& num) : cap_(num), num_(num), data_(data) 
+    Heap(T* data, const Int& num) : cap_(num), num_(num), data_(nullptr) 
     {
+        data_ = new T [num];
+        for(Int i = 0; i < num; ++i)
+            data_[i] = data[i];
         heapify();
     }; 
     ~Heap() { delete [] data_;}

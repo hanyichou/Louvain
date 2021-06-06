@@ -14,7 +14,7 @@ typedef uint64_t UInt;
 #endif
 
 template<typename T>
-inline void swap(T* data, const size_t& i, const size_t& j)
+inline void swap(T* data, const Int& i, const Int& j)
 {
     T a = data[i];
     data[i] = data[j];

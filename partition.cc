@@ -19,11 +19,10 @@ Float Partition::compute_modularity()
 
         for(Int j = 0; j < n; ++j) 
         {
-            Int v = edges[j];
+            Int v = edges[j]; 
             if(commMap_[v] == my_comm_id)
                 mod += w[j];
         }
-
         uint32_t is_set = comm_id_list[my_comm_id>>5];
         uint32_t flag = 1<<(my_comm_id%32);
         is_set &= flag;
@@ -37,7 +36,6 @@ Float Partition::compute_modularity()
     }
     mod /= (2.*m_);
     delete [] comm_id_list;
-    //std::cout << mod << std::endl;
     return mod;
 }
 
@@ -53,9 +51,6 @@ void Partition::singleton_partition()
         m_ += val;
     }
     m_ /= 2.;
-    //std::cout << m_ << std::endl;
-    //for(Int i = 0; i < num; ++i)
-        //std::cout << ac_[i] << std::endl;
 }
 
 Partition::Partition(Graph* graph) : graph_(graph), 
@@ -63,14 +58,12 @@ commMap_(nullptr), ac_(nullptr), m_(0), modularity_(0)
 {
     Int num_vertices = graph_->get_num_vertices();
     commMap_    = new Int [num_vertices];
-    //community_  = new Community* [num_vertices];
     ac_ = new Float[num_vertices];
     for(Int i = 0; i < num_vertices; ++i)
     {
         commMap_[i] = 0;
         ac_[i] = 0.;
     }
-    //compute_order_mass();
     singleton_partition();
     modularity_ = compute_modularity();
 }

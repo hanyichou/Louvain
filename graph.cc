@@ -117,7 +117,11 @@ void Graph::create_random_network_ba(const Int& m0)
     EdgeTuple* edgeList = new EdgeTuple[2*totalVertices_*m0];
     std::default_random_engine rand_gen1, rand_gen2;
     std::normal_distribution<Float> gaussian(1.0,1.0);
-    indices_ = new Int [totalVertices_+1];
+
+    indices_ = new Int[totalVertices_+1];
+    indices_[0] = 0;
+    for(Int i = 0; i < totalVertices_; ++i)
+        indices_[i+1] = 0;
 
     totalEdges_ = 0;
     for(int i = 0; i < m0; ++i)
@@ -126,16 +130,16 @@ void Graph::create_random_network_ba(const Int& m0)
         edgeList[totalEdges_+0] = {0,   i+1, w};
         edgeList[totalEdges_+1] = {i+1, 0,   w};
         indices_[1]   += 1;
-        indices_[i+1] += 1;
+        indices_[i+2] += 1;
         totalEdges_ += 2;
     }
-    for(Int i = m0; i < totalVertices_; ++i)
+    for(Int i = m0+1; i < totalVertices_; ++i)
     {
         std::uniform_int_distribution<Int> uniform(0,totalEdges_-1);
         for(Int j = 0; j < m0; ++j)
         {
             EdgeTuple e  = edgeList[uniform(rand_gen2)];
-            Float w = gaussian(rand_gen2);
+            Float w = fabs(gaussian(rand_gen1));
             edgeList[totalEdges_+2*j+0] = {i, e.x, w};
             edgeList[totalEdges_+2*j+1] = {e.x, i, w};
             indices_[i+1]   += 1;
@@ -145,8 +149,8 @@ void Graph::create_random_network_ba(const Int& m0)
     }
     for(Int i = 1; i <= totalVertices_; ++i)
         indices_[i] += indices_[i-1];
-    //std::cout << totalEdges_ << std::endl;
     sort_edges(edgeList, totalEdges_);
+    delete [] edgeList;
 }
 
 void Graph::reset_orders_weights()
@@ -177,7 +181,7 @@ weights_(nullptr)
     
     weighted_orders_ = new Float [totalVertices_];
     max_weights_ = new Float[totalVertices_];
-    orders_ = new Int[totalVertices_];
+    orders_  = new Int[totalVertices_];
     for(Int i = 0; i < totalVertices_; ++i)
     {
         weighted_orders_[i] = 0.;
@@ -209,7 +213,8 @@ void Graph::neigh_scan_weights()
         Int end = indices_[i+1];
         for(Int j = start; j < end; ++j)
         {
-            Float w = weights_[j];
+            Int u = edges_[j];
+            Float w = weights_[u];
             weighted_orders_[i] += w;
         }
     }
@@ -221,10 +226,11 @@ void Graph::neigh_scan_max_weight()
     {
         Int start = indices_[i];
         Int end = indices_[i+1];
-        Float max = 0;
+        Float max = 0.;
         for(Int j = start; j < end; ++j)
         {
-            Float w = weights_[j];
+            Int u = edges_[j];
+            Float w = weights_[u];
             if(max < w)
                 max = w;
         }
@@ -255,7 +261,8 @@ void Graph::neigh_scan_weights(const int& num_threads)
         Int end = indices_[i+1];
         for(Int j = start; j < end; ++j)
         {
-            Float w = weights_[j];
+            Int u = edges_[j];
+            Float w = weights_[u];
             weighted_orders_[i] += w;
         }
     }
@@ -272,7 +279,8 @@ void Graph::neigh_scan_max_weight(const int& num_threads)
         Float max = 0;
         for(Int j = start; j < end; ++j)
         {
-            Float w = weights_[j];
+            Int u = edges_[j];
+            Float w = weights_[u];
             if(max < w)
                 max = w;
         }

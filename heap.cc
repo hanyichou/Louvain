@@ -31,7 +31,7 @@ template<typename T, typename Comp>
 void Heap<T,Comp>::push_back(const T& elem)
 {
     Int curr = num_++;
-    resize(num_);
+    resize(num_-1, num_);
     data_[curr] = elem;
     while((curr != 0) && (Comp::prior(data_[curr], data_[parent(curr)])))
     {
@@ -48,7 +48,7 @@ T Heap<T,Comp>::pop_back()
     swap(data_, 0, --num_);
     if(num_ != 0)
         siftDown(0);
-    resize(num_);
+    resize(num_+1, num_);
     return data_[num_];
 }
 
@@ -71,7 +71,7 @@ T Heap<T,Comp>::pop(const Int& i)
         if(num_ != 0)
             siftDown(pos); 
     }
-    resize(num_);
+    resize(num_+1, num_);
     return data_[num_];
 }
 
@@ -102,19 +102,19 @@ void Heap<T,Comp>::siftDown(const Int& i)
 template<typename T, typename Comp>
 void Heap<T,Comp>::heapify()
 {
-    for(Int i = ((num_>>1)-1); i >= 0; --i)
+    for(Int i = (num_>>1)-1; i >= 0; --i)
         siftDown(i);
 }
 
 //resize the buffer
 template<typename T, typename Comp>
-void Heap<T,Comp>::resize(const Int& new_size)
+void Heap<T,Comp>::resize(const Int& old_size, const Int& new_size)
 {
-    if((new_size >= cap_) || (new_size < (cap_>>2)))
+    if((new_size > cap_) || (new_size < (cap_>>2)))
     {
-        cap_ = ((new_size >= cap_) ? (new_size<<1) : (cap_>>1));
+        cap_ = ((new_size > cap_) ? (new_size<<1) : (cap_>>1));
         T* tmp = new T [cap_];
-        for(Int i = 0; i < num_; ++i)
+        for(Int i = 0; i < old_size; ++i)
             tmp[i] = data_[i];
     
         delete [] data_;
