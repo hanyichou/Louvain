@@ -3,9 +3,15 @@ CC:=g++
 CFLAGS:= -std=c++11
 
 ifeq ($(debug), 1)
-	CFLAGS+= -g -Wall -Wextra -Wfatal-errors -fopenmp -DUSE_32BIT 
+	CFLAGS+= -g -Wall -Wextra -Wfatal-errors -fopenmp
 else
-	CFLAGS+= -O3 -Wall -Wextra -Wfatal-errors -fopenmp -DUSE_32BIT
+	CFLAGS+= -O3 -Wall -Wextra -Wfatal-errors -fopenmp
+endif
+
+ifeq ($(bit),32)
+	CFLAGS+= -DUSE_32BIT
+else
+	CFLAGS+= -DUSE_64BIT
 endif
 
 EXE1:= test_heap
