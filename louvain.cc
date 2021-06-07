@@ -9,7 +9,6 @@ Float Louvain::move_vertex()
     Float total_delta = 0.;
 
     Float *weighted_orders = graph->get_weighted_orders();
-    //Int   *orders = graph->get_orders();
     Float* ac = partition_-> get_community_order();
 
     Int max_order = graph->get_max_order();
@@ -95,7 +94,7 @@ void Louvain::run()
         {
             delta = move_vertex();
             std::cout << "LOOP\t\tdQ\n";
-            std::cout << "-------------------------\n"; 
+            std::cout << "-----------------------------\n"; 
             std::cout << count <<"\t\t" << delta << std::endl;
             count++;
             if(delta < tau_)
