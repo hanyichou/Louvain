@@ -2,6 +2,56 @@
 #include <map>
 #include "louvain.h"
 
+#ifdef USE_OMP
+Float Louvain::random_move_vertex(Int* comm_id_old)
+{
+    Graph* graph = partition_->get_graph();
+    Int num_vertices = graph->get_num_vertices();
+    Float total_delta = 0.;
+
+    Float *weighted_orders = graph->get_weighted_orders();
+    Float* ac = partition_-> get_community_order();
+
+    int num_threads = omp_get_num_threads();
+
+    Move* moves = new Move[num_threads];
+
+    #pragma omp parallel
+    {
+        //randomly choose a vertex and an edge,
+        //move the vertex to that cluster
+        Int my_thread_id = omp_get_thread_num();
+        Int num = (Int)(num_vertices/num_threads);
+        Int start = my_thread_id*num;
+        Int end = start+num;
+        if(my_thread_id+1 == num_threads)
+            end = num_vertices;
+
+        Int v = rand() % (end-start)+start;
+        Int* edges    = graph->get_adjacent_edges(v);
+        Int num_edges = graph->get_num_adjacent_vertices(v);
+
+        Int e = rand() % num_edges; 
+        Int target_comm_id =  partition_->get_comm_id(edges[e]);
+
+        //comm_id[v] = target_id;
+        moves[my_thread_id] = {v, my target_id}
+    }
+
+    partition->move_vertex(moves);
+    Float dQ = partition_->get_modularity() - 
+               partition_->compute_modularity();
+    if(dQ < 0.)
+    {
+        //make a move here
+    }
+    else
+    {
+        //restore the move
+    }
+    return (dQ < 0.) ? dQ : 0.;
+}
+#else
 Float Louvain::move_vertex()
 {
     Graph* graph = partition_->get_graph();
@@ -81,6 +131,7 @@ Float Louvain::move_vertex()
     delete e_cj;
     return total_delta; 
 }
+#endif
 
 void Louvain::run()
 {

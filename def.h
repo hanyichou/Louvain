@@ -45,6 +45,9 @@ class Max
     }
 };
 
+typedef struct {Int x,y;} Int2;
+typedef struct {Int id; Int i, j; Float ac} Move;
+
 typedef struct Edge
 {
     Int x;
