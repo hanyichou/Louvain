@@ -16,7 +16,7 @@ Float Louvain::random_move_vertex(Int* comm_id_old)
 
     Move* moves = new Move[num_threads];
 
-    #pragma omp parallel
+    //#pragma omp parallel
     {
         //randomly choose a vertex and an edge,
         //move the vertex to that cluster
@@ -168,5 +168,6 @@ void Louvain::run()
     } while (!done);
     std::cout << "Final Q: " << partition_->get_modularity() << std::endl;
     std::cout << "Check Final Q: " << partition_->compute_modularity() << std::endl;    
-    //show_partition(partition);
+
+    partition_->show_partition();
 }

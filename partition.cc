@@ -1,4 +1,9 @@
 #include <iostream>
+#include <vector>
+#include <utility>
+#include <algorithm>
+#include <list>
+#include "def.h"
 #include "partition.h"
 #ifdef USE_OMP
 Float Partition::compute_modularity()
@@ -139,4 +144,53 @@ void Partition::move_vertex(const Int& v, const Int& src, const Int& dest, const
     commMap_[v] = dest;
     ac_[src] -= ki;
     ac_[dest] += ki;
+}
+
+static void show_clusters_statistics(const std::vector< std::pair<Int,Int> >& comm_pair)
+{
+
+    Int currCommId = comm_pair[0].first;
+    Int count = 1;
+    Int uniq_comm_id = 0;
+    std::list< std::pair<Int,Int> > comm_list;
+    for(int i = 1; i < comm_pair.size(); ++i)
+    {
+        if(currCommId == comm_pair[i].first)
+            count++;
+        else
+        {
+            comm_list.push_back(std::pair<Int,Int>(uniq_comm_id,count));
+            uniq_comm_id++;
+            count = 0;
+            currCommId = comm_pair[i].first;
+        }
+    }
+    std::cout << "Number of clusters: " << comm_list.size() << std::endl;
+    for(auto iter = comm_list.begin(); iter != comm_list.end(); ++iter)
+        std::cout << "Cluster " << iter->first << " has " << iter->second << " vertices\n";
+}
+
+void Partition::show_partition() const
+{
+    std::vector<std::pair<Int, Int> > comm_pair;
+    Int num_vertices = graph_->get_num_vertices();
+
+    for(Int i = 0; i < num_vertices; ++i)
+        comm_pair.push_back(std::pair<Int,Int>(commMap_[i],i));
+
+     struct 
+     {
+        bool operator()(std::pair<Int,Int> a, std::pair<Int,Int> b) const 
+        { 
+            if(a.first < b.first)
+                 return true;
+            else if (a.first == b.first)
+                 return a.second < b.second;
+            else
+                 return false;
+        }
+      } PairLess;
+
+    std::sort(comm_pair.begin(),comm_pair.end(),PairLess);
+    show_clusters_statistics(comm_pair);        
 }

@@ -45,5 +45,6 @@ class Partition
     Float get_mass() const { return m_;};
     Float get_modularity() const { return modularity_; };
     Float* get_community_order() { return ac_;};
+    void show_partition() const;
 };
 #endif

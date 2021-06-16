@@ -7,6 +7,10 @@
 typedef int32_t Int;
 typedef float Float;
 typedef uint32_t UInt;
+#elif USE_64BIT
+typedef int64_t Int;
+typedef double Float;
+typedef uint64_t UInt;
 #else
 typedef int64_t Int;
 typedef double Float;
@@ -46,7 +50,7 @@ class Max
 };
 
 typedef struct {Int x,y;} Int2;
-typedef struct {Int id; Int i, j; Float ac} Move;
+//typedef struct {Int id; Int i, j; Float ac;} Move;
 
 typedef struct Edge
 {

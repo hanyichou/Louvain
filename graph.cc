@@ -4,6 +4,9 @@
 #include <iostream>
 #include <random>
 #include <algorithm>
+#include <fstream>
+#include <cstdint>
+#include <climits>
 #include "graph.h"
 #include "def.h"
 #include "heap.h"
@@ -330,6 +333,163 @@ void Graph::print_stats()
     std::cout << "Variance: " << pvar << std::endl;
     std::cout << "Standard deviation: " << pstddev << std::endl;
     std::cout << "--------------------------------------" << std::endl;
+}
+
+Graph::Graph(const std::string& binfile):
+totalVertices_(0), max_order_(0),
+weighted_orders_(nullptr), max_weights_(nullptr), orders_(nullptr),
+indices_(nullptr), totalEdges_(0), edges_(nullptr),
+weights_(nullptr)
+{
+    using GraphElem = Int;
+    using GraphWeight = Float;
+
+    std::ifstream file;
+    file.open(binfile.c_str(), std::ios::in | std::ios::binary); 
+
+    if (!file.is_open()) 
+    {
+        std::cout << " Error opening file! " << std::endl;
+        std::abort();
+    }
+
+    // read the dimensions 
+    file.read(reinterpret_cast<char*>(&totalVertices_), sizeof(GraphElem));
+    file.read(reinterpret_cast<char*>(&totalEdges_), sizeof(GraphElem));
+
+    //weighted_orders_ = new GraphWeight [totalVertices_];
+    //max_weights_ = new GraphWeight [totalVertices_];
+    //orders_ = new GraphElem [totalVertices_];
+     
+    indices_ = new GraphElem [totalVertices_+1];
+    //edges_ = new GraphElem [totalEdges_];
+    //weights_ = new GraphWeight [totalEdges_];
+    Edge* edges = new Edge [totalEdges_];
+
+    uint64_t tot_bytes=(totalVertices_+1)*sizeof(GraphElem);
+    ptrdiff_t offset = 2*sizeof(GraphElem);
+
+    if (tot_bytes < INT_MAX)
+        file.read(reinterpret_cast<char*>(&indices_[0]), tot_bytes);
+    else 
+    {
+        int chunk_bytes = INT_MAX;
+        uint8_t *curr_pointer = (uint8_t*) &indices_[0];
+        uint64_t transf_bytes = 0;
+
+        while (transf_bytes < tot_bytes)
+        {
+            file.read(reinterpret_cast<char*>(&curr_pointer[offset]), chunk_bytes);
+            transf_bytes += chunk_bytes;
+            offset += chunk_bytes;
+            curr_pointer += chunk_bytes;
+
+            if ((tot_bytes - transf_bytes) < INT_MAX)
+                chunk_bytes = tot_bytes - transf_bytes;
+        } 
+    }    
+
+    if(indices_[totalVertices_] - indices_[0] != totalEdges_)
+    {
+        std::cerr << "Error format in the file\n";
+        std::abort();
+    }
+ 
+    tot_bytes = totalEdges_*(sizeof(Edge));
+    offset = 2*sizeof(GraphElem) + (totalVertices_+1)*sizeof(GraphElem) 
+           + indices_[0]*(sizeof(Edge));
+
+#if defined(GRAPH_FT_LOAD)
+    ptrdiff_t currpos = file.tellg();
+    ptrdiff_t idx = 0;
+    GraphElem* vidx = new GraphElem [totalVertices_];
+
+    const int num_sockets = (GRAPH_FT_LOAD == 0) ? 1 : GRAPH_FT_LOAD;
+    printf("Read file from %d sockets\n", num_sockets);
+    int n_blocks = num_sockets;
+
+    GraphElem NV_blk_sz = totalVertices_ / n_blocks;
+    GraphElem tid_blk_sz = omp_get_num_threads() / n_blocks;
+
+    #pragma omp parallel
+    {
+        for (int b=0; b<n_blocks; b++) 
+        {
+            long NV_beg = b * NV_blk_sz;
+            long NV_end = std::min(totalVertices_, ((b+1) * NV_blk_sz) );
+            int tid_doit = b * tid_blk_sz;
+
+            if (omp_get_thread_num() == tid_doit) 
+            {
+                // for each vertex within block
+                for (GraphElem i = NV_beg; i < NV_end ; i++) 
+                {
+                    // ensure first-touch allocation
+                    // read and initialize using your code
+                    vidx[i] = idx;
+                    const GraphElem vcount = indices_[i+1] - indices_[i];
+                    idx += vcount;
+                    file.seekg(currpos + vidx[i] * sizeof(Edge), std::ios::beg);
+                    //file.read(reinterpret_cast<char*>(&edges_[vidx[i]]), sizeof(Edge) * (vcount));
+                    file.read(reinterpret_cast<char*>(&edges[vidx[i]]), sizeof(Edge) * (vcount));
+                }
+            }
+        }
+    }
+    delete [] vidx;
+#else
+    if (tot_bytes < INT_MAX)
+        file.read(reinterpret_cast<char*>(&edges[0]), tot_bytes);
+    else 
+    {
+        int chunk_bytes=INT_MAX;
+        uint8_t *curr_pointer = (uint8_t*)&edges[0];
+        uint64_t transf_bytes = 0;
+
+        while (transf_bytes < tot_bytes)
+        {
+            file.read(reinterpret_cast<char*>(&curr_pointer[offset]), tot_bytes);
+            transf_bytes += chunk_bytes;
+            offset += chunk_bytes;
+            curr_pointer += chunk_bytes;
+
+            if ((tot_bytes - transf_bytes) < INT_MAX)
+                chunk_bytes = (tot_bytes - transf_bytes);
+        } 
+    } 
+    file.close();
+#endif
+
+    edges_ = new GraphElem [totalEdges_];
+    weights_ = new GraphWeight [totalEdges_];
+    //std::cout << totalEdges_ << " " << indices_[0] << " " << indices_[totalVertices_] << std::endl;
+    for(GraphElem i = 0; i < totalEdges_; ++i)
+    {
+        Edge e = edges[i];
+        edges_[i] = e.x;
+        weights_[i] = e.w;
+    }
+    delete [] edges;
+
+    for(GraphElem i=1;  i < totalVertices_+1; i++)
+        indices_[i] -= indices_[0];
+    indices_[0] = 0;
+
+    weighted_orders_ = new GraphWeight [totalVertices_];
+    max_weights_ = new GraphWeight [totalVertices_];
+    orders_ = new GraphElem [totalVertices_];
+
+    for(Int i = 0; i < totalVertices_; ++i)
+    {
+        weighted_orders_[i] = 0.;
+        max_weights_[i] = 0.;
+        orders_[i] = 0;
+    }
+
+    neigh_scan();
+    neigh_scan_weights();
+    neigh_scan_max_weight();
+    neigh_scan_max_order();
 }
 
 #if 0

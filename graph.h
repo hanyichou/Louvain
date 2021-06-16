@@ -1,6 +1,7 @@
 #ifndef GRAPH_H_
 #define GRAPH_H_
 #include <list>
+#include <string>
 #include "heap.h"
 #include "def.h"
 
@@ -38,7 +39,8 @@ class Graph
 
   public:      
     Graph(const Int&, const Int&);
-
+    Graph(const std::string&);
+ 
     ~Graph()
     {
         delete [] weighted_orders_;

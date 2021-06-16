@@ -63,21 +63,31 @@ int main(int argc, char **argv)
         exit(-1);
 
     double t0, td, td0, td1;
+    Int n;
+    int n_threads;
+    Graph* g = nullptr;
+    if (std::string(argv[1]) == "-r")
+    {
+        n = (Int)atoi(argv[2]);
+        const Int m0 = (Int)atoi(argv[3]);
+        n_threads = atoi(argv[4]);
 
-    const Int n = (Int)atoi(argv[1]);
-    const Int m0 = (Int)atoi(argv[2]);
-    const int n_threads = (int)atoi(argv[3]);
-
-    td0 = omp_get_wtime();
-
-    Graph* g = new Graph(n, m0);
-    
-    g->print_stats();
+        td0 = omp_get_wtime();
+        g = new Graph(n, m0);
+    }
+    else if (std::string(argv[1]) == "-f")
+    {
+        n_threads = atoi(argv[3]);
+        td0 = omp_get_wtime();
+        g = new Graph(std::string(argv[2]));
+    }
     assert(g != nullptr);
+    g->print_stats();
 
     td1 = omp_get_wtime();
     td = td1 - td0;
 
+    n = g->get_num_vertices();
     std::cout << "Time to generate graph of " 
               << n << " vertices (in s): " << td << std::endl;
 
