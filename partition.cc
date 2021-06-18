@@ -5,7 +5,8 @@
 #include <list>
 #include "def.h"
 #include "partition.h"
-#ifdef USE_OMP
+#ifdef USE_SHARED_OMP
+#include <omp.h>
 Float Partition::compute_modularity()
 {
     Float mod = 0.;
@@ -14,6 +15,8 @@ Float Partition::compute_modularity()
     uint32_t* comm_id_list = new uint32_t[(num+31)>>5];
     for(Int i = 0; i < (num+31)>>5; ++i)
         comm_id_list[i] = 0;
+
+    omp_set_num_threads(NUM_THREADS);
 
     #pragma omp parallel for reduction(+:mod)
     for(Int u = 0; u < num; ++u)
@@ -39,7 +42,7 @@ Float Partition::compute_modularity()
             {
                 comm_id_list[pos] |= flag;
                 Float ac = ac_[my_comm_id];
-                mod -= ac*ac/(2.*m_);
+                mod += -ac*ac/(2.*m_);
             }
         }
     }
@@ -88,6 +91,11 @@ Float Partition::compute_modularity()
 }
 #endif
 
+void Partition::update_modularity(const float& m)
+{
+    modularity_ = m;
+}
+
 void Partition::singleton_partition()
 {
     Int num = graph_->get_num_vertices();
@@ -95,6 +103,7 @@ void Partition::singleton_partition()
     for(Int i = 0; i < num; ++i)
     {
         commMap_[i] = i;
+        commNumVertices_[i] += 1;
         Float val = w[i];
         ac_[i] += val;
         m_ += val;
@@ -103,15 +112,19 @@ void Partition::singleton_partition()
 }
 
 Partition::Partition(Graph* graph) : graph_(graph), 
-commMap_(nullptr), ac_(nullptr), m_(0), modularity_(0)
+commMap_(nullptr), commNumVertices_(nullptr), ac_(nullptr), 
+m_(0), modularity_(0)
 {
     Int num_vertices = graph_->get_num_vertices();
     commMap_    = new Int [num_vertices];
+    commNumVertices_ = new Int [num_vertices];
+
     ac_ = new Float[num_vertices];
     for(Int i = 0; i < num_vertices; ++i)
     {
         commMap_[i] = 0;
         ac_[i] = 0.;
+        commNumVertices_[i] = 0;
     }
     singleton_partition();
     modularity_ = compute_modularity();
@@ -120,6 +133,7 @@ commMap_(nullptr), ac_(nullptr), m_(0), modularity_(0)
 Partition::~Partition()
 {
     delete [] commMap_;
+    delete [] commNumVertices_;
     delete [] ac_;
 }
 
@@ -142,9 +156,29 @@ void Partition::move_vertex(const Int& v, const Int& src, const Int& dest, const
 {
     modularity_ += delta;
     commMap_[v] = dest;
+    commNumVertices_[src] -= 1;
+    commNumVertices_[dest] += 1;
     ac_[src] -= ki;
     ac_[dest] += ki;
 }
+
+void Partition::move_vertex(Move* moves, const int& num)
+{
+    for(Int i = 0; i < num; ++i)
+    {
+        Move move = moves[i];
+        Int v = move.id;
+        Int src = move.src_comm;
+        Int dest = move.dest_comm;
+        Float ki = move.ac;
+        commMap_[v] = dest;
+        ac_[src]  -= ki;
+        ac_[dest] += ki; 
+        commNumVertices_[src] -= 1;
+        commNumVertices_[dest] += 1;
+    } 
+}
+
 
 static void show_clusters_statistics(const std::vector< std::pair<Int,Int> >& comm_pair)
 {
@@ -153,7 +187,7 @@ static void show_clusters_statistics(const std::vector< std::pair<Int,Int> >& co
     Int count = 1;
     Int uniq_comm_id = 0;
     std::list< std::pair<Int,Int> > comm_list;
-    for(int i = 1; i < comm_pair.size(); ++i)
+    for(unsigned i = 1; i < comm_pair.size(); ++i)
     {
         if(currCommId == comm_pair[i].first)
             count++;
@@ -161,7 +195,7 @@ static void show_clusters_statistics(const std::vector< std::pair<Int,Int> >& co
         {
             comm_list.push_back(std::pair<Int,Int>(uniq_comm_id,count));
             uniq_comm_id++;
-            count = 0;
+            count = 1;
             currCommId = comm_pair[i].first;
         }
     }

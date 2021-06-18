@@ -12,15 +12,21 @@ class Louvain
     Int maxLoop_;
     Float tau_;
 
-    //void show_clusters(const Partition&);
+    #ifdef USE_SHARED_OMP
+    Float move_vertex(const int&, Int*, Int*, Float*);
+    #else
     Float move_vertex();
- 
+    Float random_move_vertex(Mt19937*);
+    #endif
   public:
     Louvain(Partition* partition, const Int& maxLoop, const Float& tau) : 
     partition_(partition), maxLoop_(maxLoop), tau_(tau) {};
 
     ~Louvain(){};
-    void run();
-    
+    #ifdef USE_SHARED_OMP
+    void run(const int&);
+    #else
+    void run(int);
+    #endif
 };
 #endif

@@ -3,9 +3,9 @@ CC:=g++
 CFLAGS:= -std=c++11
 
 ifeq ($(debug), 1)
-	CFLAGS += -g -Wall -Wextra -Wfatal-errors -fopenmp
+	CFLAGS += -g -Wall -Wextra -Wfatal-errors -fopenmp -DUSE_SHARED_OMP
 else
-	CFLAGS += -Ofast -Wall -Wextra -Wfatal-errors -fopenmp
+	CFLAGS += -Ofast -Wall -Wextra -Wfatal-errors -fopenmp -DUSE_SHARED_OMP
 endif
 
 ifeq ($(graph_ft_load),1)

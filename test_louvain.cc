@@ -32,7 +32,7 @@ int main(int argc, char** argv)
     Partition* partition = new Partition(graph);
     Louvain* louvain = new Louvain(partition, maxloop, tau);
 
-    louvain->run();
+    louvain->run(atoi(argv[argc-1]));
 
     delete louvain;
     delete partition;

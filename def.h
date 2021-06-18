@@ -2,19 +2,33 @@
 #define DEF_H_
 #include <cstdint>
 #include <cstddef>
+#include <random>
+
+#ifndef NUM_THREADS
+#define NUM_THREADS 16
+#endif
 
 #ifdef USE_32BIT
+
 typedef int32_t Int;
 typedef float Float;
 typedef uint32_t UInt;
+typedef std::mt19937 Mt19937;
+
 #elif USE_64BIT
+
 typedef int64_t Int;
 typedef double Float;
 typedef uint64_t UInt;
+typedef std::mt19937_64 Mt19937;
+
 #else
+
 typedef int64_t Int;
 typedef double Float;
 typedef uint64_t UInt;
+typedef std::mt19937_64 Mt19937;
+
 #endif
 
 template<typename T>
@@ -50,7 +64,7 @@ class Max
 };
 
 typedef struct {Int x,y;} Int2;
-//typedef struct {Int id; Int i, j; Float ac;} Move;
+typedef struct {Int id; Int src_comm, dest_comm; Float ac;} Move;
 
 typedef struct Edge
 {
@@ -103,8 +117,9 @@ const int tab[64] = {
     44, 24, 15,  8, 23,  7,  6,  5};
 
 #endif
-
-inline int log2 (UInt value)
+namespace MyMath
+{
+inline int log2(UInt value)
 {
     value |= value >> 1u;
     value |= value >> 2u;
@@ -134,5 +149,5 @@ inline int hibit(UInt n)
     #endif
     return n - (n >> 1);
 }
-
+};
 #endif

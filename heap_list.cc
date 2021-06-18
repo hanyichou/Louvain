@@ -156,7 +156,7 @@ BTNode<T>* HeapList<T,Comp>::get_node(const Int& pos)
     if(root_ == nullptr) 
         return nullptr;
 
-    int max_bit = ::log2(pos);
+    int max_bit = MyMath::log2(pos);
     BTNode<T>* curr = root_;
     for(int i = max_bit-1; i >= 0; --i)
     {   
@@ -332,7 +332,7 @@ T HeapList<T,Comp>::get_node_value(BTNode<T>* ptr)
 template<typename T, typename Comp>
 void HeapList<T,Comp>::check_heap()
 {
-    int k = log2(num_);
+    int k = MyMath::log2(num_);
     //std::cout << k << std::endl;
     for(int i = 1; i <= k+1; ++i)
     {
